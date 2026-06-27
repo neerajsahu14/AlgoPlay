@@ -1,6 +1,5 @@
-package com.neeraj.algoplay.ui.theme
+package com.neeraj.algoplay.core.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

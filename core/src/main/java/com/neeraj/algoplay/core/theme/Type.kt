@@ -1,4 +1,4 @@
-package com.neeraj.algoplay.ui.theme
+package com.neeraj.algoplay.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
