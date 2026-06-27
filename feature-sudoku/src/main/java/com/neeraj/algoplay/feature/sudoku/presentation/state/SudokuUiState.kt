@@ -8,6 +8,7 @@ data class SudokuUiState(
     val solution: SudokuBoard = Array(9) { IntArray(9) },
     val givenCells: Set<Pair<Int, Int>> = emptySet(),
     val isLoading: Boolean = false,
+    val isGameActive: Boolean = false,
     val selectedDifficulty: Difficulty = Difficulty.MEDIUM,
     val statusMessage: String? = null
 ) {

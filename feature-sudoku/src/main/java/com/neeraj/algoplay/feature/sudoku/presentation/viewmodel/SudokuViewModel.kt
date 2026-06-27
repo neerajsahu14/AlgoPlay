@@ -26,22 +26,46 @@ class SudokuViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SudokuUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        generateNewGame()
-    }
+    fun generateNewGame(
+        difficulty: Difficulty = _uiState.value.selectedDifficulty,
+        force: Boolean = false
+    ) {
+        // Don't regenerate if a game is already active unless forced
+        if (!force && _uiState.value.isGameActive) return
 
-    fun generateNewGame(difficulty: Difficulty = _uiState.value.selectedDifficulty) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, selectedDifficulty = difficulty) }
-            val sudokuPuzzle = generateSudokuUseCase(difficulty)
-            _uiState.update {
-                it.copy(
-                    puzzle = sudokuPuzzle.puzzle,
-                    solution = sudokuPuzzle.solution,
-                    givenCells = buildGivenCells(sudokuPuzzle.puzzle),
-                    statusMessage = null,
-                    isLoading = false
-                )
+            
+            var isValid = false
+            var attempts = 0
+            val maxAttempts = 5
+            
+            while (!isValid && attempts < maxAttempts) {
+                val sudokuPuzzle = generateSudokuUseCase(difficulty)
+                if (validateSudokuUseCase(sudokuPuzzle.puzzle)) {
+                    isValid = true
+                    _uiState.update {
+                        it.copy(
+                            puzzle = sudokuPuzzle.puzzle,
+                            solution = sudokuPuzzle.solution,
+                            givenCells = buildGivenCells(sudokuPuzzle.puzzle),
+                            isGameActive = true,
+                            statusMessage = null,
+                            isLoading = false
+                        )
+                    }
+                }
+                attempts++
+            }
+            
+            if (!isValid) {
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false, 
+                        isGameActive = false,
+                        statusMessage = "Failed to generate a valid puzzle. Please try again."
+                    )
+                }
             }
         }
     }

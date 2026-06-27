@@ -23,6 +23,9 @@ fun SudokuGameContent(
     uiState: SudokuUiState,
     onDifficultyChange: (Difficulty) -> Unit,
     onNumberClick: (Int, Int, Int) -> Unit,
+    onGenerate: () -> Unit,
+    onCheck: () -> Unit,
+    onSolve: () -> Unit,
     onClear: (Int, Int) -> Unit,
     showDifficultySelector: Boolean,
     modifier: Modifier = Modifier
@@ -72,6 +75,12 @@ fun SudokuGameContent(
                         if (showDifficultySelector) {
                             DifficultySelector(uiState.selectedDifficulty, onDifficultyChange)
                         }
+
+                        ActionBar(
+                            onGenerate = onGenerate,
+                            onCheck = onCheck,
+                            onSolve = onSolve
+                        )
                         
                         NumberPad(
                             onNumberClick = { value ->
@@ -111,11 +120,18 @@ fun SudokuGameContent(
                             selectedCol = col
                         }
                     )
+
+                    ActionBar(
+                        onGenerate = onGenerate,
+                        onCheck = onCheck,
+                        onSolve = onSolve
+                    )
+
                     NumberPad(
                         onNumberClick = { value ->
                             if (selectedRow != -1 && selectedCol != -1) {
-                                onNumberClick(selectedRow, selectedCol, value)
-                            }
+                                    onNumberClick(selectedRow, selectedCol, value)
+                                }
                         },
                         onBackspace = {
                             if (selectedRow != -1 && selectedCol != -1) {
