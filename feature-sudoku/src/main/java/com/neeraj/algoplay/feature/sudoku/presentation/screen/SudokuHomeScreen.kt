@@ -25,7 +25,8 @@ fun SudokuHomeScreen(
     windowSizeClass: WindowSizeClass,
     selectedDifficulty: Difficulty,
     onDifficultyChange: (Difficulty) -> Unit,
-    onStartGame: () -> Unit
+    onStartGame: () -> Unit,
+    onBack: () -> Unit
 ) {
     val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
     val colorScheme = MaterialTheme.colorScheme
@@ -34,7 +35,7 @@ fun SudokuHomeScreen(
         modifier = Modifier
             .background(colorScheme.background)
             .statusBarsPadding()
-        , topBar = { SudokuTopBar() }) { padding ->
+        , topBar = { SudokuTopBar(onBackClick = onBack) }) { padding ->
         if (isExpanded) {
             Row(
                 modifier = Modifier

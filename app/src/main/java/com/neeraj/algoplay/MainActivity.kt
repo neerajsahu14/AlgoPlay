@@ -20,6 +20,7 @@ import com.neeraj.algoplay.core.theme.AlgoPlayTheme
 import com.neeraj.algoplay.feature.sudoku.domain.model.Difficulty
 import com.neeraj.algoplay.feature.sudoku.presentation.screen.SudokuHomeScreen
 import com.neeraj.algoplay.feature.sudoku.presentation.screen.SudokuScreen
+import com.neeraj.algoplay.home.HomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -44,13 +45,19 @@ fun AppRoot(windowSizeClass: androidx.compose.material3.windowsizeclass.WindowSi
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
+            HomeScreen { algorithm ->
+                algorithm.route?.let { navController.navigate(it) }
+            }
+        }
+        composable("sudoku_home") {
             SudokuHomeScreen(
                 windowSizeClass = windowSizeClass,
                 selectedDifficulty = selectedDifficulty,
                 onDifficultyChange = { selectedDifficulty = it },
                 onStartGame = {
                     navController.navigate("game/${selectedDifficulty.name}/${System.currentTimeMillis()}")
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
         composable(
