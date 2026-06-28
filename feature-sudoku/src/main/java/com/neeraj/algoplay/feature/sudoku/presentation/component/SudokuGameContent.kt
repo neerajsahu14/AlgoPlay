@@ -5,6 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -28,6 +30,10 @@ fun SudokuGameContent(
     onCheck: () -> Unit,
     onSolve: () -> Unit,
     onClear: (Int, Int) -> Unit,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    canUndo: Boolean,
+    canRedo: Boolean,
     showDifficultySelector: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -69,20 +75,30 @@ fun SudokuGameContent(
                         )
                     }
 
-                    NumberPad(
+                    Column(
                         modifier = Modifier.weight(1f),
-                        onNumberClick = { value ->
-                            if (selectedRow != -1 && selectedCol != -1) {
-                                onNumberClick(selectedRow, selectedCol, value)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        UndoRedoControls(
+                            canUndo = canUndo,
+                            canRedo = canRedo,
+                            onUndo = onUndo,
+                            onRedo = onRedo
+                        )
+                        NumberPad(
+                            onNumberClick = { value ->
+                                if (selectedRow != -1 && selectedCol != -1) {
+                                    onNumberClick(selectedRow, selectedCol, value)
+                                }
+                            },
+                            onBackspace = {
+                                if (selectedRow != -1 && selectedCol != -1) {
+                                    onClear(selectedRow, selectedCol)
+                                }
                             }
-                        },
-                        onBackspace = {
-                            if (selectedRow != -1 && selectedCol != -1) {
-                                onClear(selectedRow, selectedCol)
-                            }
-                        }
-                    )
-                    GameStatus(uiState.statusMessage)
+                        )
+                        GameStatus(uiState.statusMessage)
+                    }
                 }
             } else {
                 // Vertical layout for phones
@@ -108,11 +124,18 @@ fun SudokuGameContent(
                         }
                     )
 
+                    UndoRedoControls(
+                        canUndo = canUndo,
+                        canRedo = canRedo,
+                        onUndo = onUndo,
+                        onRedo = onRedo
+                    )
+
                     NumberPad(
                         onNumberClick = { value ->
                             if (selectedRow != -1 && selectedCol != -1) {
-                                    onNumberClick(selectedRow, selectedCol, value)
-                                }
+                                onNumberClick(selectedRow, selectedCol, value)
+                            }
                         },
                         onBackspace = {
                             if (selectedRow != -1 && selectedCol != -1) {
@@ -123,6 +146,35 @@ fun SudokuGameContent(
                     GameStatus(uiState.statusMessage)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun UndoRedoControls(
+    canUndo: Boolean,
+    canRedo: Boolean,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedButton(
+            onClick = onUndo,
+            enabled = canUndo,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(text = "Undo")
+        }
+        OutlinedButton(
+            onClick = onRedo,
+            enabled = canRedo,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(text = "Redo")
         }
     }
 }

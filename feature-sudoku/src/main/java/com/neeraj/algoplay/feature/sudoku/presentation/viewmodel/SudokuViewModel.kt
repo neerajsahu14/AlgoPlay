@@ -16,6 +16,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private data class SudokuSnapshot(
+    val puzzle: SudokuBoard,
+    val solution: SudokuBoard,
+    val givenCells: Set<Pair<Int, Int>>,
+    val isGameActive: Boolean,
+    val statusMessage: String?
+)
+
 @HiltViewModel
 class SudokuViewModel @Inject constructor(
     private val generateSudokuUseCase: GenerateSudokuUseCase,
@@ -25,6 +33,8 @@ class SudokuViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SudokuUiState())
     val uiState = _uiState.asStateFlow()
+    private val undoStack = ArrayDeque<SudokuSnapshot>()
+    private val redoStack = ArrayDeque<SudokuSnapshot>()
 
     fun generateNewGame(
         difficulty: Difficulty = _uiState.value.selectedDifficulty,
@@ -34,6 +44,7 @@ class SudokuViewModel @Inject constructor(
         if (!force && _uiState.value.isGameActive) return
 
         viewModelScope.launch {
+            clearHistory()
             _uiState.update { it.copy(isLoading = true, selectedDifficulty = difficulty) }
             
             var isValid = false
@@ -75,11 +86,15 @@ class SudokuViewModel @Inject constructor(
         if (row !in 0..8 || col !in 0..8) return
         if (row to col in currentState.givenCells) return
         if (value !in 0..9) return
+        if (currentState.puzzle[row][col] == value) return
 
+        pushUndoState()
         _uiState.update {
             it.copy(
                 puzzle = it.puzzle.deepCopy().apply { this[row][col] = value },
-                statusMessage = null
+                statusMessage = null,
+                canUndo = true,
+                canRedo = false
             )
         }
     }
@@ -102,17 +117,36 @@ class SudokuViewModel @Inject constructor(
             return
         }
 
+        pushUndoState()
         val solvedBoard = solveSudokuUseCase(currentBoard)
         _uiState.update {
             it.copy(
                 puzzle = solvedBoard,
-                statusMessage = "Puzzle solved."
+                statusMessage = "Puzzle solved.",
+                canUndo = true,
+                canRedo = false
             )
         }
     }
 
     fun clearCell(row: Int, col: Int) {
         updateCell(row, col, 0)
+    }
+
+    fun undo() {
+        if (undoStack.isEmpty()) return
+
+        val currentState = snapshotCurrentState()
+        redoStack.addLast(currentState)
+        restoreSnapshot(undoStack.removeLast())
+    }
+
+    fun redo() {
+        if (redoStack.isEmpty()) return
+
+        val currentState = snapshotCurrentState()
+        undoStack.addLast(currentState)
+        restoreSnapshot(redoStack.removeLast())
     }
 
     private fun buildGivenCells(board: SudokuBoard): Set<Pair<Int, Int>> {
@@ -122,6 +156,52 @@ class SudokuViewModel @Inject constructor(
                     if (value != 0) add(rowIndex to colIndex)
                 }
             }
+        }
+    }
+
+    private fun pushUndoState() {
+        undoStack.addLast(snapshotCurrentState())
+        redoStack.clear()
+        updateHistoryFlags()
+    }
+
+    private fun snapshotCurrentState(): SudokuSnapshot {
+        val currentState = _uiState.value
+        return SudokuSnapshot(
+            puzzle = currentState.puzzle.deepCopy(),
+            solution = currentState.solution.deepCopy(),
+            givenCells = currentState.givenCells,
+            isGameActive = currentState.isGameActive,
+            statusMessage = currentState.statusMessage
+        )
+    }
+
+    private fun restoreSnapshot(snapshot: SudokuSnapshot) {
+        _uiState.update {
+            it.copy(
+                puzzle = snapshot.puzzle.deepCopy(),
+                solution = snapshot.solution.deepCopy(),
+                givenCells = snapshot.givenCells,
+                isGameActive = snapshot.isGameActive,
+                statusMessage = snapshot.statusMessage,
+                canUndo = undoStack.isNotEmpty(),
+                canRedo = redoStack.isNotEmpty()
+            )
+        }
+    }
+
+    private fun clearHistory() {
+        undoStack.clear()
+        redoStack.clear()
+        updateHistoryFlags()
+    }
+
+    private fun updateHistoryFlags() {
+        _uiState.update {
+            it.copy(
+                canUndo = undoStack.isNotEmpty(),
+                canRedo = redoStack.isNotEmpty()
+            )
         }
     }
 }

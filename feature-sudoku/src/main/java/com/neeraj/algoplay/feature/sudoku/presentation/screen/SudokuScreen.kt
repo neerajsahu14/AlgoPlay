@@ -83,6 +83,10 @@ fun SudokuScreen(
             onCheck = viewModel::checkBoard,
             onSolve = viewModel::solvePuzzle,
             onClear = viewModel::clearCell,
+            onUndo = viewModel::undo,
+            onRedo = viewModel::redo,
+            canUndo = uiState.canUndo,
+            canRedo = uiState.canRedo,
             showDifficultySelector = false,
             modifier = Modifier.weight(1f)
         )
