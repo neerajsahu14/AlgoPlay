@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.neeraj.algoplay.core.model.SudokuBoard as SudokuBoardModel
 
@@ -23,11 +23,13 @@ fun SudokuBoard(
     onCellClick: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    
     GameCard(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             repeat(GRID_SIZE) { row ->
@@ -47,10 +49,10 @@ fun SudokuBoard(
                         val isSameBox = !isSelected && isSameBox(row, col, selectedRow, selectedCol)
 
                         val bgColor = when {
-                            isSelected -> Color(0xFFD7EBFF)
-                            isSameNum -> Color(0xFFE3F2FD)
-                            isSameRowCol || isSameBox -> Color(0xFFF3F6F9)
-                            else -> Color(0xFFFAFAFA)
+                            isSelected -> colorScheme.primaryContainer
+                            isSameNum -> colorScheme.secondaryContainer.copy(alpha = 0.8f)
+                            isSameRowCol || isSameBox -> colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            else -> colorScheme.surface
                         }
 
                         SudokuCell(

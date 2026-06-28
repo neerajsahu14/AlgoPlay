@@ -1,5 +1,6 @@
 package com.neeraj.algoplay.feature.sudoku.presentation.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -27,8 +28,13 @@ fun SudokuHomeScreen(
     onStartGame: () -> Unit
 ) {
     val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
+    val colorScheme = MaterialTheme.colorScheme
 
-    Scaffold(topBar = { SudokuTopBar() }) { padding ->
+    Scaffold(
+        modifier = Modifier
+            .background(colorScheme.background)
+            .statusBarsPadding()
+        , topBar = { SudokuTopBar() }) { padding ->
         if (isExpanded) {
             Row(
                 modifier = Modifier
